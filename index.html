@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Facilitador de Pós-Venda Porto</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <style>
+    :root{
+      --bg:#f4f7fb; --card:#ffffff; --ink:#172033; --muted:#657086; --line:#dfe7f2;
+      --primary:#123c69; --primary2:#0b6b88; --ok:#0f766e; --warn:#b45309; --bad:#b91c1c;
+      --soft:#eef6ff; --soft2:#f7fbff;
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#f8fbff,#eef4fb);color:var(--ink)}
+    .app{max-width:1320px;margin:0 auto;padding:26px}
+    .hero{background:linear-gradient(135deg,var(--primary),#0f6583);border-radius:26px;color:white;padding:26px 30px;box-shadow:0 18px 50px rgba(18,60,105,.22);position:relative;overflow:hidden}
+    .hero:after{content:"";position:absolute;right:-80px;top:-80px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.10)}
+    .brand{display:flex;align-items:center;gap:14px;position:relative;z-index:1}.logo{width:54px;height:54px;border-radius:17px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:28px;font-weight:900;border:1px solid rgba(255,255,255,.22)}
+    h1{margin:0;font-size:30px;letter-spacing:-.4px}.subtitle{margin:7px 0 0;color:#dcecff;font-size:14px;max-width:780px;line-height:1.45}
+    .panel{margin-top:18px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:18px;padding:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:relative;z-index:1}
+    input[type=file]{display:none}.btn,.upload-label{border:0;border-radius:13px;padding:12px 16px;font-weight:800;cursor:pointer;background:var(--primary);color:#fff;transition:.18s;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:14px}.upload-label{background:white;color:var(--primary)}.btn:hover,.upload-label:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(0,0,0,.16)}.btn.secondary{background:#fff;color:var(--primary);border:1px solid var(--line)}.btn.ok{background:var(--ok)}.btn.warn{background:var(--warn)}.btn.danger{background:var(--bad)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px}.kpi{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:0 10px 30px rgba(15,43,74,.06)}.kpi .label{color:var(--muted);font-size:13px;font-weight:700}.kpi .num{font-size:30px;font-weight:900;margin-top:6px;color:var(--primary)}.kpi.ok .num{color:var(--ok)}.kpi.warn .num{color:var(--warn)}
+    .workspace{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:0 12px 36px rgba(15,43,74,.07);overflow:hidden}.toolbar{padding:18px;display:grid;grid-template-columns:1.5fr 1fr 1fr auto auto;gap:12px;align-items:end;background:var(--soft2);border-bottom:1px solid var(--line)}
+    .field label{display:block;font-size:12px;color:var(--muted);font-weight:900;margin-bottom:7px;text-transform:uppercase;letter-spacing:.04em}.field input,.field select{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:13px;background:white;color:var(--ink);outline:none;font-size:14px}.field input:focus,.field select:focus{border-color:#74a6d7;box-shadow:0 0 0 4px rgba(47,121,190,.12)}
+    #vendorSelect option.vendor-sent{color:#0f766e;font-weight:900;background:#ecfdf5}#vendorSelect option.vendor-pending{color:#172033;background:#fff}#vendorSelect.sent-selected{border-color:#10b981;background:linear-gradient(135deg,#ffffff,#ecfdf5);box-shadow:0 0 0 4px rgba(16,185,129,.12);font-weight:800;color:#0f766e}
+    .tabs{display:flex;gap:8px;padding:14px 18px;border-bottom:1px solid var(--line);background:white}.tab{border:1px solid var(--line);background:white;border-radius:999px;padding:10px 14px;font-weight:800;color:var(--muted);cursor:pointer}.tab.active{background:var(--primary);color:white;border-color:var(--primary)}
+    .statusline{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:14px 18px;color:var(--muted);font-weight:700;font-size:13px}.statusline b{color:var(--primary)}
+    .tablewrap{overflow:auto;max-height:560px;border-top:1px solid var(--line)}table{width:100%;border-collapse:separate;border-spacing:0;min-width:1050px}th{position:sticky;top:0;background:#eef5fc;color:#24364d;text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:12px;border-bottom:1px solid var(--line);z-index:2}td{padding:11px 12px;border-bottom:1px solid #eef2f7;font-size:13px;color:#263447;vertical-align:top}tr:hover td{background:#f8fbff}.badge{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;font-weight:900;font-size:11px}.badge.ok{background:#dcfce7;color:#166534}.badge.warn{background:#ffedd5;color:#9a3412}.empty{padding:48px;text-align:center;color:var(--muted)}.small{font-size:12px;color:var(--muted);line-height:1.4}.footer{margin-top:12px;text-align:center;color:var(--muted);font-size:12px}.toast{position:fixed;right:20px;bottom:20px;background:#172033;color:white;padding:14px 16px;border-radius:14px;box-shadow:0 18px 42px rgba(0,0,0,.22);display:none;z-index:9;max-width:420px}.toast.show{display:block}
+    @media(max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}.toolbar{grid-template-columns:1fr}.app{padding:14px}.hero{padding:20px}.statusline{flex-direction:column;align-items:flex-start}}
+  </style>
+
+<style id="pos-venda-sem-scroll-horizontal">
+html, body{overflow-x:hidden !important;max-width:100% !important;}
+.tablewrap{overflow-x:hidden !important;overflow-y:auto !important;max-width:100% !important;}
+.tablewrap table{width:100% !important;min-width:0 !important;table-layout:fixed !important;}
+.tablewrap th,.tablewrap td{
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+  word-break:break-word !important;
+  line-height:1.35 !important;
+  padding:10px 8px !important;
+  font-size:12px !important;
+  vertical-align:top !important;
+}
+.tablewrap th{font-size:10px !important;letter-spacing:.025em !important;}
+.tablewrap th:nth-child(1), .tablewrap td:nth-child(1){width:10% !important;}
+.tablewrap th:nth-child(2), .tablewrap td:nth-child(2){width:8% !important;}
+.tablewrap th:nth-child(3), .tablewrap td:nth-child(3){width:7% !important;}
+.tablewrap th:nth-child(4), .tablewrap td:nth-child(4){width:16% !important;}
+.tablewrap th:nth-child(5), .tablewrap td:nth-child(5){width:11% !important;}
+.tablewrap th:nth-child(6), .tablewrap td:nth-child(6){width:10% !important;}
+.tablewrap th:nth-child(7), .tablewrap td:nth-child(7){width:17% !important;}
+.tablewrap th:nth-child(8), .tablewrap td:nth-child(8){width:8% !important;}
+.tablewrap th:nth-child(9), .tablewrap td:nth-child(9){width:9% !important;}
+.tablewrap th:nth-child(10), .tablewrap td:nth-child(10){width:4% !important;}
+.badge{white-space:normal !important;text-align:center !important;line-height:1.1 !important;padding:6px 6px !important;font-size:10px !important;max-width:100% !important;}
+</style>
+
+
+<style id="pos-venda-badge-legivel-fix">
+.badge{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-width:120px !important;
+  max-width:140px !important;
+  min-height:40px !important;
+  padding:8px 10px !important;
+  border-radius:999px !important;
+  white-space:normal !important;
+  word-break:normal !important;
+  overflow-wrap:break-word !important;
+  text-align:center !important;
+  line-height:1.15 !important;
+  font-size:11px !important;
+  font-weight:900 !important;
+}
+.tablewrap td:last-child{
+  text-align:center !important;
+}
+.tablewrap th:last-child,
+.tablewrap td:last-child{
+  width:120px !important;
+  min-width:120px !important;
+}
+.tablewrap th:nth-last-child(2),
+.tablewrap td:nth-last-child(2){
+  width:110px !important;
+}
+</style>
+
+
+<style id="pos-venda-profissional-preview-v1">
+.posTopDashboard{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:12px;
+  margin:0 0 16px;
+}
+.posDashCard{
+  background:linear-gradient(180deg,#ffffff,#f8fafc);
+  border:1px solid #dfe7f0;
+  border-radius:20px;
+  padding:15px;
+  box-shadow:0 12px 26px rgba(16,24,40,.07);
+}
+.posDashCard small{
+  display:block;
+  color:#667085;
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.posDashCard b{
+  display:block;
+  margin-top:7px;
+  color:#123c69;
+  font-size:27px;
+  letter-spacing:-.045em;
+}
+.posDashCard span{
+  display:block;
+  margin-top:5px;
+  color:#667085;
+  font-size:11.5px;
+  line-height:1.35;
+}
+.posDashProgress{
+  height:8px;
+  background:#e9eef5;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:10px;
+}
+.posDashProgress i{
+  display:block;
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#0b6b4f,#14b8a6);
+  border-radius:999px;
+}
+.posWorkLayout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:16px;
+  padding:16px;
+  border-top:1px solid var(--line);
+  background:#f8fafc;
+}
+.posMainWork{
+  min-width:0;
+  display:grid;
+  gap:14px;
+}
+.posSidePanel{
+  background:#fff;
+  border:1px solid #dfe7f0;
+  border-radius:22px;
+  box-shadow:0 12px 26px rgba(16,24,40,.07);
+  padding:16px;
+  position:sticky;
+  top:12px;
+  align-self:start;
+}
+.posSidePanel h3{
+  margin:0 0 8px;
+  color:#101828;
+  font-size:18px;
+  letter-spacing:-.03em;
+}
+.posSidePanel p{
+  margin:0 0 12px;
+  color:#667085;
+  font-size:12px;
+  line-height:1.45;
+}
+.posSidePanel textarea{
+  width:100%;
+  min-height:280px;
+  resize:vertical;
+  border:1px solid #d9e2ec;
+  border-radius:16px;
+  padding:12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:12px;
+  line-height:1.45;
+  color:#263447;
+  background:#fbfdff;
+}
+.posSideActions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+.posSideActions button{
+  border:0;
+  border-radius:12px;
+  padding:10px 12px;
+  font-weight:900;
+  font-size:12px;
+  cursor:pointer;
+  background:#123c69;
+  color:#fff;
+}
+.posSideActions button.secondary{
+  background:#eef5fc;
+  color:#123c69;
+  border:1px solid #d7e5f3;
+}
+.posViewBar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  background:#fff;
+  border:1px solid #dfe7f0;
+  border-radius:18px;
+  padding:12px;
+  box-shadow:0 8px 20px rgba(16,24,40,.05);
+}
+.posViewBar b{
+  color:#101828;
+}
+.posViewBar small{
+  display:block;
+  color:#667085;
+  margin-top:3px;
+  font-weight:700;
+}
+.posViewButtons{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.posViewButtons button{
+  border:1px solid #d9e4ee;
+  background:#fff;
+  border-radius:999px;
+  padding:9px 12px;
+  font-weight:900;
+  color:#344054;
+  cursor:pointer;
+}
+.posViewButtons button.active{
+  background:#123c69;
+  color:#fff;
+  border-color:#123c69;
+}
+.posVendorGrid{
+  display:none;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.posVendorGrid.active{display:grid}
+.posVendorCard{
+  background:#fff;
+  border:1px solid #dfe7f0;
+  border-radius:20px;
+  padding:16px;
+  box-shadow:0 10px 24px rgba(16,24,40,.06);
+}
+.posVendorTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+.posVendorTop b{
+  color:#101828;
+  font-size:16px;
+  letter-spacing:-.02em;
+  display:block;
+}
+.posVendorTop small{
+  display:block;
+  color:#667085;
+  margin-top:4px;
+  font-weight:750;
+}
+.posVendorStats{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  margin:10px 0 12px;
+}
+.posVendorStats div{
+  background:#f8fafc;
+  border:1px solid #eef2f7;
+  border-radius:12px;
+  padding:8px;
+}
+.posVendorStats small{
+  display:block;
+  color:#667085;
+  font-size:10px;
+  font-weight:900;
+  text-transform:uppercase;
+}
+.posVendorStats span{
+  display:block;
+  margin-top:4px;
+  color:#123c69;
+  font-weight:950;
+}
+.posVendorActions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.posVendorActions button{
+  border:0;
+  border-radius:12px;
+  padding:9px 10px;
+  font-weight:900;
+  font-size:12px;
+  cursor:pointer;
+  background:#123c69;
+  color:#fff;
+}
+.posVendorActions button.secondary{
+  background:#eef5fc;
+  color:#123c69;
+  border:1px solid #d7e5f3;
+}
+.posVendorActions button.success{
+  background:#0f766e;
+}
+.posVendorActions button.warning{
+  background:#f97316;
+}
+.tablewrap.posCompact table{
+  table-layout:fixed;
+  min-width:0!important;
+}
+.tablewrap.posCompact th:nth-child(1), .tablewrap.posCompact td:nth-child(1){display:none}
+.tablewrap.posCompact th:nth-child(2), .tablewrap.posCompact td:nth-child(2){width:12%!important}
+.tablewrap.posCompact th:nth-child(3), .tablewrap.posCompact td:nth-child(3){display:none}
+.tablewrap.posCompact th:nth-child(4), .tablewrap.posCompact td:nth-child(4){width:28%!important}
+.tablewrap.posCompact th:nth-child(5), .tablewrap.posCompact td:nth-child(5){display:none}
+.tablewrap.posCompact th:nth-child(6), .tablewrap.posCompact td:nth-child(6){width:14%!important}
+.tablewrap.posCompact th:nth-child(7), .tablewrap.posCompact td:nth-child(7){display:none}
+.tablewrap.posCompact th:nth-child(8), .tablewrap.posCompact td:nth-child(8){width:13%!important}
+.tablewrap.posCompact th:nth-child(9), .tablewrap.posCompact td:nth-child(9){width:18%!important}
+.tablewrap.posCompact th:nth-child(10), .tablewrap.posCompact td:nth-child(10){width:15%!important}
+@media(max-width:1180px){
+  .posWorkLayout{grid-template-columns:1fr}
+  .posSidePanel{position:static}
+  .posTopDashboard{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .posVendorGrid{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  .posTopDashboard{grid-template-columns:1fr}
+  .posVendorStats{grid-template-columns:1fr}
+}
+</style>
+
+
+<style id="pos-venda-toolbar-texto-corrigido-v2">
+/* Correção segura: evita texto quebrado/sobreposição na área de filtros do Pós-Venda */
+.toolbar{
+  display:grid !important;
+  grid-template-columns:minmax(260px,1.4fr) minmax(220px,1fr) minmax(220px,1fr) !important;
+  gap:14px !important;
+  align-items:end !important;
+  padding:18px !important;
+}
+.toolbar .field{
+  min-width:0 !important;
+}
+.toolbar .field input,
+.toolbar .field select{
+  width:100% !important;
+  min-height:46px !important;
+  white-space:normal !important;
+}
+.toolbarActions{
+  grid-column:1 / -1 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:12px !important;
+  flex-wrap:wrap !important;
+  padding-top:4px !important;
+}
+.toolbarActions .btn{
+  min-width:210px !important;
+  justify-content:center !important;
+  white-space:nowrap !important;
+}
+.workspace{
+  margin-top:22px !important;
+  overflow:visible !important;
+}
+.posTopDashboard{
+  margin-top:20px !important;
+  margin-bottom:18px !important;
+}
+.posDashCard,
+.workspace,
+.posWorkLayout,
+.posViewBar,
+.posVendorCard{
+  overflow:visible !important;
+}
+.posViewBar{
+  align-items:flex-start !important;
+}
+.posViewBar small{
+  line-height:1.35 !important;
+  white-space:normal !important;
+}
+.btn,
+.upload-label,
+.tab,
+.posViewButtons button{
+  line-height:1.2 !important;
+  text-align:center !important;
+}
+@media(max-width:1100px){
+  .toolbar{
+    grid-template-columns:1fr 1fr !important;
+  }
+  .toolbar .field:first-child{
+    grid-column:1 / -1 !important;
+  }
+  .toolbarActions{
+    grid-column:1 / -1 !important;
+  }
+}
+@media(max-width:760px){
+  .toolbar{
+    grid-template-columns:1fr !important;
+  }
+  .toolbar .field:first-child{
+    grid-column:auto !important;
+  }
+  .toolbarActions{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+  }
+  .toolbarActions .btn{
+    width:100% !important;
+    min-width:0 !important;
+  }
+  .tabs,
+  .posViewButtons{
+    flex-wrap:wrap !important;
+  }
+  .statusline{
+    display:grid !important;
+    gap:10px !important;
+  }
+}
+</style>
+
+
+<style id="pos-venda-botao-exportar-arquivo-v1">
+.posMainExportBtn{
+  background:linear-gradient(135deg,#0f766e,#14b8a6)!important;
+  color:#fff!important;
+  border:0!important;
+  min-width:220px!important;
+  justify-content:center!important;
+  white-space:nowrap!important;
+}
+.panel .posMainExportBtn{
+  box-shadow:0 12px 26px rgba(15,118,110,.22)!important;
+}
+.toolbarActions .posMainExportBtn{
+  min-width:220px!important;
+}
+</style>
+
+
+<style id="pos-venda-barra-vendedores-v1">
+.vendorBarSection{
+  margin:18px 18px 0;
+  background:#fff;
+  border:1px solid #dfe7f0;
+  border-radius:22px;
+  box-shadow:0 10px 24px rgba(16,24,40,.06);
+  overflow:hidden;
+}
+.vendorBarHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px;
+  border-bottom:1px solid #edf2f7;
+  flex-wrap:wrap;
+}
+.vendorBarHead h3{
+  margin:0;
+  color:#101828;
+  font-size:17px;
+  letter-spacing:-.02em;
+}
+.vendorBarHead p{
+  margin:4px 0 0;
+  color:#667085;
+  font-size:12px;
+}
+.vendorSearchBox{
+  min-width:280px;
+  flex:1 1 320px;
+  max-width:420px;
+}
+.vendorSearchBox input{
+  width:100%;
+  min-height:44px;
+  border:1px solid #d6e0ea;
+  border-radius:14px;
+  padding:0 14px;
+  font-size:13px;
+  color:#1f2937;
+  background:#fbfdff;
+}
+.vendorChipWrap{
+  padding:14px 16px 16px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.vendorChip{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid #d9e2ec;
+  background:#fff;
+  color:#344054;
+  border-radius:999px;
+  padding:10px 14px;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+  transition:.15s ease;
+}
+.vendorChip:hover{
+  transform:translateY(-1px);
+  border-color:#123c69;
+}
+.vendorChip.active{
+  background:#123c69;
+  color:#fff;
+  border-color:#123c69;
+  box-shadow:0 10px 24px rgba(18,60,105,.20);
+}
+.vendorChip.sent{
+  background:#ecfdf5;
+  color:#0f766e;
+  border-color:#a7f3d0;
+}
+.vendorChip.sent.active{
+  background:#0f766e;
+  color:#fff;
+  border-color:#0f766e;
+}
+.vendorChip small{
+  font-size:10px;
+  font-weight:900;
+  opacity:.8;
+}
+.vendorChipEmpty{
+  width:100%;
+  padding:12px 0 4px;
+  color:#667085;
+  font-size:12px;
+  font-weight:700;
+}
+@media(max-width:760px){
+  .vendorSearchBox{
+    min-width:0;
+    max-width:none;
+    width:100%;
+  }
+}
+</style>
+
+</head>
+<body>
+  <div class="app">
+    <section class="hero">
+      <div class="brand"><div class="logo">PV</div><div><h1>Facilitador de Pós-Venda Porto</h1><p class="subtitle">Importe a planilha Contratos, filtre por vendedor, acompanhe pendências e exporte o Excel de envio.</p></div></div>
+      <div class="panel">
+        <label class="upload-label" for="fileInput">📥 Importar base Excel</label><input id="fileInput" type="file" accept=".xlsx,.xls" />
+        <button class="btn secondary" id="btnReset" type="button" onclick="resetPosVendaSystem360(event)">🧹 Limpar sistema</button><button class="btn ok posMainExportBtn" id="btnExportExcelMain">📤 Exportar Excel da visão atual</button>
+      </div>
+    </section>
+
+    <section class="posTopDashboard">
+      <div class="posDashCard"><small>Total de clientes</small><b id="kpiTotal">0</b><span>Registros carregados na base.</span></div>
+      <div class="posDashCard"><small>Vendedores</small><b id="kpiVend">0</b><span>Com demanda na visão atual.</span></div>
+      <div class="posDashCard"><small>Enviados</small><b id="kpiEnv">0</b><span>Vendedores já sinalizados.</span></div>
+      <div class="posDashCard"><small>Pendentes</small><b id="kpiNao">0</b><span>Vendedores ainda não enviados.</span></div>
+      <div class="posDashCard"><small>Conclusão</small><b id="kpiPerc">0%</b><span>Progresso da rotina.</span><div class="posDashProgress"><i id="kpiProgress"></i></div></div>
+    </section>
+
+    <section class="workspace">
+      <div class="toolbar">
+        <div class="field"><label>Pesquisar</label><input id="searchInput" placeholder="Cliente, contrato, CPF, telefone ou e-mail" /></div>
+        <div class="field"><label>Vendedor selecionado</label><select id="vendorSelect"><option value="">Todos os vendedores</option></select></div>
+        <div class="field"><label>Ordenar</label><select id="sortSelect"><option value="cliente">Cliente A-Z</option><option value="vendedor">Vendedor A-Z</option><option value="contrato">Contrato</option><option value="status">Status</option></select></div>
+        <div class="toolbarActions">
+          <button class="btn ok" id="btnExportVendor">📤 Exportar Excel do vendedor</button>
+          <button class="btn secondary" onclick="finalizeDayPOS()">✅ Finalizar rotina</button>
+        </div>
+      </div>
+      <div class="tabs"><button class="tab active" data-status="todos">Todos</button><button class="tab" data-status="nao">Não enviados</button><button class="tab" data-status="enviados">Enviados</button></div>
+      <div class="statusline"><div id="statusText">Importe uma base para iniciar.</div><div><button class="btn secondary" id="btnUndo" disabled>↩️ Voltar selecionados para não enviados</button></div></div>
+      <div class="posWorkLayout">
+        <div class="posMainWork">
+          <div class="posViewBar">
+            <div><b>Área de trabalho</b><small>Controle a operação por tabela, visão compacta ou vendedor. O Excel será exportado conforme a visão/filtro atual.</small></div>
+            <div class="posViewButtons">
+              <button id="btnViewTable" class="active" onclick="setPosView('table')">Tabela</button>
+              <button id="btnViewCompact" onclick="setPosView('compact')">Compacta</button>
+              <button id="btnViewVendors" onclick="setPosView('vendors')">Por vendedor</button>
+            </div>
+          </div>
+          <div class="tablewrap" id="tableWrapPos"><table><thead><tr id="theadRow"></tr></thead><tbody id="tbody"></tbody></table></div>
+          <div class="posVendorGrid" id="posVendorGrid"></div>
+        </div>
+      </div>
+    </section>
+    <div class="footer">Central de Pós-Venda • Dados salvos neste navegador após a importação.</div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY='central_pos_venda_v2';
+const EXPORT_HEADERS=['Contrato','Grupo/Cota','Origem','Cliente','CPF/CNPJ','Telefone','E-mail','Status','Vendedor'];
+let state={rows:[],headers:[],activeStatus:'todos',sentVendors:[]};
+const $=id=>document.getElementById(id);
+function showToast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3400)}
+function norm(v){return (v??'').toString().trim()}
+function safeFile(s){return norm(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').toUpperCase()||'SEM_NOME'}
+function storage360(){try{return window.parent&&window.parent.localStorage?window.parent.localStorage:window.localStorage}catch(e){return window.localStorage}}
+function save(){try{storage360().setItem(STORAGE_KEY,JSON.stringify(state))}catch(e){console.warn('Não foi possível salvar a base do Assistente de Envios.',e)}}
+function load(){try{const s=storage360().getItem(STORAGE_KEY);if(s)state=JSON.parse(s); if(!Array.isArray(state.sentVendors))state.sentVendors=[];}catch(e){console.warn(e)}render()}
+function getVendors(){return [...new Set(state.rows.map(r=>norm(r.vendedor)).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'))}
+function sentSet(){return new Set(state.sentVendors||[])}
+function isVendorSent(v){return sentSet().has(norm(v))}
+function setVendorSent(v, sent){v=norm(v); const set=sentSet(); sent ? set.add(v) : set.delete(v); state.sentVendors=[...set].sort((a,b)=>a.localeCompare(b,'pt-BR'))}
+function filteredRows(){let rows=[...state.rows];const vend=$('vendorSelect').value;const q=norm($('searchInput').value).toLowerCase();if(vend)rows=rows.filter(r=>r.vendedor===vend);if(state.activeStatus==='nao')rows=rows.filter(r=>!isVendorSent(r.vendedor));if(state.activeStatus==='enviados')rows=rows.filter(r=>isVendorSent(r.vendedor));if(q)rows=rows.filter(r=>[...r.exportData,r.vendedor].join(' ').toLowerCase().includes(q));const sort=$('sortSelect').value;rows.sort((a,b)=>{if(sort==='vendedor')return a.vendedor.localeCompare(b.vendedor,'pt-BR')||a.exportData[3].localeCompare(b.exportData[3],'pt-BR');if(sort==='contrato')return norm(a.exportData[0]).localeCompare(norm(b.exportData[0]),'pt-BR');if(sort==='status')return norm(a.exportData[7]).localeCompare(norm(b.exportData[7]),'pt-BR');return norm(a.exportData[3]).localeCompare(norm(b.exportData[3]),'pt-BR')});return rows}
+
+let posViewMode='table';
+
+function setPosView(mode){
+  posViewMode=mode || 'table';
+  const table=$('tableWrapPos');
+  const vendors=$('posVendorGrid');
+  const b1=$('btnViewTable'), b2=$('btnViewCompact'), b3=$('btnViewVendors');
+  if(table){
+    table.style.display=(posViewMode==='vendors')?'none':'block';
+    table.classList.toggle('posCompact', posViewMode==='compact');
+  }
+  if(vendors)vendors.classList.toggle('active', posViewMode==='vendors');
+  if(b1)b1.classList.toggle('active', posViewMode==='table');
+  if(b2)b2.classList.toggle('active', posViewMode==='compact');
+  if(b3)b3.classList.toggle('active', posViewMode==='vendors');
+  renderVendorCards();
+}
+
+function groupByVendorPOS(rows){
+  const map=new Map();
+  rows.forEach(r=>{
+    const v=norm(r.vendedor)||'SEM VENDEDOR';
+    if(!map.has(v))map.set(v,[]);
+    map.get(v).push(r);
+  });
+  return [...map.entries()].sort((a,b)=>a[0].localeCompare(b[0],'pt-BR'));
+}
+
+
+function renderVendorBar(){
+  const wrap=$('vendorChipWrap');
+  if(!wrap)return;
+  const selected=$('vendorSelect')?.value||'';
+  const q=(norm($('vendorSearchBar')?.value||'')).toLowerCase();
+  const vendors=getVendors().filter(v=>!q || v.toLowerCase().includes(q));
+  const allActive=!selected;
+  let html=`<button class="vendorChip ${allActive?'active':''}" onclick="selectVendorFromBar('')">Todos <small>${state.rows.length}</small></button>`;
+  if(!vendors.length){
+    html+=`<div class="vendorChipEmpty">Nenhum vendedor encontrado para a pesquisa informada.</div>`;
+    wrap.innerHTML=html;
+    return;
+  }
+  html += vendors.map(v=>{
+    const sent=isVendorSent(v);
+    const active=selected===v;
+    const safe=escapeHtml(v).replace(/'/g,'&#39;');
+    const total=state.rows.filter(r=>r.vendedor===v).length;
+    return `<button class="vendorChip ${sent?'sent':''} ${active?'active':''}" onclick="selectVendorFromBar('${safe}')">${escapeHtml(v)} <small>${total}</small></button>`;
+  }).join('');
+  wrap.innerHTML=html;
+}
+function selectVendorFromBar(v){
+  const sel=$('vendorSelect');
+  if(sel) sel.value=v||'';
+  render();
+}
+
+function renderVendorCards(){
+  const grid=$('posVendorGrid');
+  if(!grid)return;
+  const rows=filteredRows();
+  const groups=groupByVendorPOS(rows);
+  if(!groups.length){
+    grid.innerHTML='<div class="empty">Nenhum vendedor encontrado para o filtro atual.</div>';
+    return;
+  }
+  grid.innerHTML=groups.map(([v,items])=>{
+    const sent=isVendorSent(v);
+    const first=items[0]||{exportData:[]};
+    const status=norm(first.exportData?.[7]||'—');
+    return `<div class="posVendorCard">
+      <div class="posVendorTop">
+        <div><b>${escapeHtml(v)}</b><small>${items.length} cliente(s) vinculados</small></div>
+        <span class="badge ${sent?'ok':'warn'}">${sent?'ENVIADO':'NÃO ENVIADO'}</span>
+      </div>
+      <div class="posVendorStats">
+        <div><small>Clientes</small><span>${items.length}</span></div>
+        <div><small>Status base</small><span>${escapeHtml(status)}</span></div>
+        <div><small>Envio</small><span>${sent?'Concluído':'Pendente'}</span></div>
+      </div>
+      <div class="posVendorActions">
+        <button onclick="selectVendorPOS('${escapeHtml(v).replace(/'/g,'&#39;')}')">Ver clientes</button>
+        <button class="${sent?'warning':'success'}" onclick="setVendorSent('${escapeHtml(v).replace(/'/g,'&#39;')}',${sent?'false':'true'});save();render();showToast('${sent?'Vendedor voltou para não enviado.':'Vendedor marcado como enviado.'}')">${sent?'Desmarcar':'Marcar enviado'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectVendorPOS(v){
+  const sel=$('vendorSelect');
+  if(sel){sel.value=v; state.activeStatus='todos';}
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.status==='todos'));
+  render();
+  setPosView('table');
+}
+
+
+function finalizeDayPOS(){
+  const vendors=getVendors();
+  const sent=vendors.filter(v=>isVendorSent(v)).length;
+  const pend=vendors.length-sent;
+  alert(`Resumo do Pós-Venda\n\nVendedores enviados: ${sent}\nVendedores pendentes: ${pend}\nTotal de clientes: ${state.rows.length}`);
+}
+
+function renderVendors(){const sel=$('vendorSelect');const cur=sel.value;sel.innerHTML='<option value="">Todos os vendedores</option>';getVendors().forEach(v=>{const sent=isVendorSent(v);const o=document.createElement('option');o.value=v;o.textContent=sent?`${v}   ✅ ENVIADO`:v;o.dataset.status=sent?'enviado':'pendente';o.className=sent?'vendor-sent':'vendor-pending';if(sent){o.style.color='#0f766e';o.style.fontWeight='900';o.style.backgroundColor='#ecfdf5'}sel.appendChild(o)});if([...sel.options].some(o=>o.value===cur))sel.value=cur;sel.classList.toggle('sent-selected',!!sel.value&&isVendorSent(sel.value))}
+function render(){renderVendors();const total=state.rows.length;const vendorsList=getVendors();const vendors=vendorsList.length;const enviados=vendorsList.filter(v=>isVendorSent(v)).length;const nao=vendors-enviados;$('kpiTotal').textContent=total;$('kpiNao').textContent=nao;$('kpiEnv').textContent=enviados;$('kpiVend').textContent=vendors;const perc=vendors?Math.round((enviados/vendors)*100):0;const kp=$('kpiPerc');if(kp)kp.textContent=perc+'%';const bar=$('kpiProgress');if(bar)bar.style.width=perc+'%';const headers=[...EXPORT_HEADERS,'Situação'];$('theadRow').innerHTML=headers.map(h=>`<th>${h}</th>`).join('');const rows=filteredRows();const visibleVendors=[...new Set(rows.map(r=>r.vendedor))];$('statusText').innerHTML= total?`Exibindo <b>${rows.length}</b> registro(s) de <b>${visibleVendors.length}</b> vendedor(es). Ao exportar, o vendedor inteiro vai para enviados.`:'Importe uma base para iniciar.';$('btnUndo').disabled=!visibleVendors.some(v=>isVendorSent(v));$('btnExportVendor').disabled=!total||!$('vendorSelect').value;const btnAll=$('btnExportAll');if(btnAll)btnAll.disabled=!total;renderVendorBar();const tb=$('tbody');if(!rows.length){tb.innerHTML=`<tr><td colspan="10" class="empty">Nenhum registro encontrado para o filtro atual.</td></tr>`;renderVendorCards();setPosView(posViewMode);return}tb.innerHTML=rows.map(r=>`<tr>${r.exportData.map(c=>`<td>${escapeHtml(c)}</td>`).join('')}<td>${escapeHtml(r.vendedor)}</td><td><span class="badge ${isVendorSent(r.vendedor)?'ok':'warn'}">${isVendorSent(r.vendedor)?'ENVIADO':'NÃO ENVIADO'}</span></td></tr>`).join('');renderVendorCards();setPosView(posViewMode)}
+function escapeHtml(s){return norm(s).replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
+function headerKey(value){return norm(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'')}
+function importWorksheet(aoa){
+  const aliases=[['Contrato'],['Grupo/Cota'],['Origem'],['Cliente'],['CPF/CNPJ'],['Telefone'],['E-mail','Email'],['Situação','Status'],['Vendedor']];
+  const required=[0,1,3,4,5,6,7,8];
+  let headerIndex=-1, columns;
+  for(let i=0;i<Math.min(aoa.length,30);i++){
+    const keys=(aoa[i]||[]).map(headerKey);
+    const found=aliases.map(names=>keys.findIndex(key=>names.some(name=>headerKey(name)===key)));
+    if(required.every(index=>found[index]>=0)){headerIndex=i;columns=found;break}
+  }
+  if(headerIndex<0)throw new Error('Cabeçalhos não encontrados. A base deve conter: Contrato, Grupo/Cota, Cliente, CPF/CNPJ, Telefone, E-mail, Situação (ou Status) e Vendedor.');
+  const rows=[];
+  for(let i=headerIndex+1;i<aoa.length;i++){
+    const row=aoa[i]||[];
+    const data=columns.slice(0,8).map(index=>index<0?'':formatCell(row[index]));
+    const vendedor=norm(row[columns[8]]);
+    if(!vendedor && data.every(value=>!norm(value)))continue;
+    rows.push({id:`${i}_${data[0]}_${vendedor}`,exportData:data,vendedor:vendedor||'SEM VENDEDOR',importLine:i+1});
+  }
+  if(!rows.length)throw new Error('Planilha sem registros para importar.');
+  return {rows,headers:aoa[headerIndex].map(norm),activeStatus:'todos',sentVendors:[]};
+}
+function parseWorkbook(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+      const sheetName=wb.SheetNames.find(name=>headerKey(name)==='contratos')||wb.SheetNames[0];
+      if(!sheetName)throw new Error('Arquivo sem abas.');
+      const aoa=XLSX.utils.sheet_to_json(wb.Sheets[sheetName],{header:1,defval:''});
+      const imported=importWorksheet(aoa);
+      state=imported;
+      $('vendorSelect').value='';$('searchInput').value='';
+      document.querySelectorAll('.tab').forEach(button=>button.classList.toggle('active',button.dataset.status==='todos'));
+      save();render();
+      showToast(`Base importada com sucesso: ${state.rows.length} registro(s) e ${getVendors().length} vendedor(es).`);
+    }catch(err){console.error(err);alert('Não consegui importar a planilha. '+err.message)}
+    $('fileInput').value='';
+  };
+  reader.onerror=()=>{alert('Não consegui abrir o arquivo. Selecione a planilha novamente.');$('fileInput').value=''};
+  reader.readAsArrayBuffer(file);
+}
+function formatCell(v){if(v instanceof Date){return v.toLocaleDateString('pt-BR')}return norm(v).replace(/[\r\n]+/g,' ').replace(/\s{2,}/g,' ')}
+async function exportRows(rows,vendedorLabel){if(!rows.length){showToast('Nenhum registro para exportar.');return}const wb=new ExcelJS.Workbook();wb.creator='Facilitador de Pós-Venda Porto';wb.created=new Date();const ws=wb.addWorksheet('Clientes Selecionados');ws.properties.defaultRowHeight=18;ws.mergeCells('A1:I1');ws.getCell('A1').value='ASSISTENTE DE ENVIOS PÓS-VENDA';ws.getCell('A1').font={bold:true,size:18,color:{argb:'FFFFFFFF'}};ws.getCell('A1').alignment={horizontal:'center',vertical:'middle'};ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF123C69'}};ws.getRow(1).height=28;ws.mergeCells('A2:I2');ws.getCell('A2').value=`Vendedor: ${vendedorLabel}  |  Total: ${rows.length}  |  Gerado em: ${new Date().toLocaleDateString('pt-BR')}`;ws.getCell('A2').alignment={horizontal:'center'};ws.getCell('A2').font={bold:true,color:{argb:'FF24364D'}};ws.getCell('A2').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFF6FF'}};ws.addRow([]);const headerRow=ws.addRow(EXPORT_HEADERS);headerRow.height=22;headerRow.eachCell(cell=>{cell.font={bold:true,color:{argb:'FFFFFFFF'}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0F6583'}};cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};cell.border=thinBorder()});rows.forEach((r,idx)=>{const row=ws.addRow([...r.exportData,r.vendedor]);row.height=20;row.eachCell((cell,col)=>{cell.border=thinBorder();cell.alignment={vertical:'middle',wrapText:false,shrinkToFit:false};if(idx%2===1)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF7FBFF'}};if(col===4)cell.font={bold:true,color:{argb:'FF123C69'}}})});ws.addRow([]);const orient=ws.addRow(['Orientação: realizar contato com os clientes listados e sinalizar qualquer divergência ao administrativo.']);ws.mergeCells(`A${orient.number}:I${orient.number}`);ws.getCell(`A${orient.number}`).font={italic:true,color:{argb:'FF657086'}};ws.getCell(`A${orient.number}`).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFBEB'}};ws.columns=[{width:18},{width:16},{width:16},{width:38},{width:18},{width:18},{width:34},{width:20},{width:26}];ws.autoFilter={from:'A4',to:'I4'};aplicarCorrecoesExcel(ws);const buf=await wb.xlsx.writeBuffer();saveAs(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),`POS_VENDA_${safeFile(vendedorLabel)}_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`)}
+function thinBorder(){return {top:{style:'thin',color:{argb:'FFDCE6F1'}},left:{style:'thin',color:{argb:'FFDCE6F1'}},bottom:{style:'thin',color:{argb:'FFDCE6F1'}},right:{style:'thin',color:{argb:'FFDCE6F1'}}}}
+function aplicarCorrecoesExcel(ws){try{ws.views=[];ws.eachRow((row,rowNumber)=>{if(rowNumber>=5){row.height=20;row.eachCell(cell=>{cell.alignment={vertical:'middle',wrapText:false,shrinkToFit:false};cell.numFmt='@';if(typeof cell.value==='string'){cell.value=cell.value.replace(/[\r\n]+/g,' ').replace(/\s+/g,' ').trim();}})}});if(typeof ws.addIgnoredErrors==='function'){ws.addIgnoredErrors('A5:I1048576','numberStoredAsText');}}catch(e){console.warn('Correção visual Excel não aplicada:',e)}}
+async function exportSelectedVendor(){const vend=$('vendorSelect').value;if(!vend){showToast('Selecione um vendedor para exportar.');return}if(isVendorSent(vend)){showToast('Esse vendedor já está na base de enviados. Use o botão de voltar para reabrir, se necessário.');return}const rows=state.rows.filter(r=>r.vendedor===vend);if(!rows.length){showToast('Esse vendedor não possui registros para exportar.');return}await exportRows(rows,vend);setVendorSent(vend,true);save();render();showToast(`Exportado e movido para enviados: ${vend}.`)}
+async function exportAllPending(){
+  const rows=filteredRows();
+  if(!rows.length){
+    showToast('Nenhum registro na visão atual para exportar.');
+    return;
+  }
+  const vend=$('vendorSelect')?.value||'';
+  const label=vend || 'VISÃO ATUAL';
+  await exportRows(rows,label);
+
+  const vendors=[...new Set(rows.map(r=>r.vendedor).filter(Boolean))];
+  vendors.forEach(v=>setVendorSent(v,true));
+  save();
+  render();
+  showToast(`Excel exportado com ${rows.length} registro(s) da visão atual.`);
+}
+
+function resetPosVendaSystem360(ev){
+  try{
+    if(ev&&ev.preventDefault)ev.preventDefault();
+    if(ev&&ev.stopPropagation)ev.stopPropagation();
+    if(!confirm('Deseja limpar apenas o sistema de Pós-Venda?'))return false;
+    state={rows:[],headers:[],activeStatus:'todos',sentVendors:[]};
+    try{storage360().removeItem(STORAGE_KEY)}catch(e){}
+    try{window.localStorage&&window.localStorage.removeItem(STORAGE_KEY)}catch(e){}
+    try{window.parent&&window.parent.localStorage&&window.parent.localStorage.removeItem(STORAGE_KEY)}catch(e){}
+    ['fileInput','searchInput','vendorSearchBar'].forEach(id=>{const el=$(id);if(el)el.value='';});
+    const vend=$('vendorSelect');
+    if(vend){vend.innerHTML='<option value="">Todos os vendedores</option>';vend.value='';}
+    const sort=$('sortSelect'); if(sort)sort.value='cliente';
+    document.querySelectorAll('.tab').forEach(b=>{
+      b.classList.toggle('active', b.dataset.status==='todos');
+    });
+    const firstTab=document.querySelector('.tab[data-status="todos"]');
+    if(firstTab)firstTab.classList.add('active');
+    if(typeof setPosView==='function')setPosView('table');
+    render();
+    showToast('Sistema de Pós-Venda limpo.');
+    try{window.parent&&window.parent.resizePosFrame360&&window.parent.resizePosFrame360()}catch(e){}
+    return false;
+  }catch(err){
+    console.error(err);
+    alert('Não foi possível limpar o Pós-Venda: '+(err&&err.message?err.message:err));
+    return false;
+  }
+}
+window.resetPosVendaSystem360=resetPosVendaSystem360;
+
+$('fileInput').addEventListener('change',e=>{const f=e.target.files[0];if(f)parseWorkbook(f);e.target.value=''});
+$('searchInput').addEventListener('input',render);$('vendorSelect').addEventListener('change',render);$('sortSelect').addEventListener('change',render);$('vendorSearchBar')?.addEventListener('input',renderVendorBar);$('btnExportVendor').addEventListener('click',exportSelectedVendor);$('btnExportExcelMain')?.addEventListener('click',exportAllPending);$('btnUndo').addEventListener('click',()=>{const vendors=[...new Set(filteredRows().map(r=>r.vendedor))];vendors.forEach(v=>setVendorSent(v,false));save();render();showToast('Vendedor(es) exibido(s) voltaram para não enviados.')});$('btnReset')?.addEventListener('click',resetPosVendaSystem360);document.querySelectorAll('.tab').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');state.activeStatus=btn.dataset.status;save();render()}));load();
+</script>
+</body>
+</html>
